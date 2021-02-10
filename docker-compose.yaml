@@ -1,0 +1,45 @@
+version: '3.9'
+services:
+
+  database:
+    image: mysql
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./database/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: strapi
+      MYSQL_DATABASE: strapi
+      MYSQL_USER: strapi
+      MYSQL_PASSWORD: strapi
+
+  backend:
+    image: strapi/strapi
+    environment:
+      DATABASE_CLIENT: mysql
+      DATABASE_HOST: database
+      DATABASE_PORT: 3306
+      DATABASE_NAME: strapi
+      DATABASE_USERNAME: strapi
+      DATABASE_PASSWORD: strapi
+      DATABASE_SSL: 'false'
+    volumes:
+      - ./backend/app:/srv/app
+    ports:
+      - '1337:1337'
+    depends_on:
+      - database
+
+  frontend:
+    ports:
+      - 3000:3000
+    build:
+      context: frontend/
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/.next
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
